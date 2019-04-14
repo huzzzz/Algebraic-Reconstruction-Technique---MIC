@@ -16,7 +16,9 @@ is_color = 1;
 tic;
 %% Load Image to be reconstructed
 % Loading the denoised image
-original_image = phantom(128);
+% original_image = phantom(128);
+original_image = im2double(imread('../data/brain_mri.jpg'));
+
 savefig(my_color_scale,original_image,"Original Image","Original.png",1,to_save);
 [h,w] = size(original_image);
 
@@ -32,8 +34,9 @@ del_ang   = (stop_ang - start_ang)/num_views;
 del_t     = h/num_bins;
 lambda    = 1;
 n_iter    = 100;
-% variant   = 'Additive';
-variant   = 'Multiplicative';
+variant   = 'Additive';
+% variant   = 'Multiplicative';
+% variant   = 'SIRT';
 
 %% Construct 'b' the radon transform
 radon_transform = constructRadonTransform(original_image, num_bins, num_views, start_ang, stop_ang, del_ang, del_t);
@@ -53,7 +56,7 @@ elseif strcmp(variant,'Multiplicative')
 	
 elseif strcmp(variant,'SIRT')
 	
-	fprintf('Not Implemented yet')
+	attenuation = simultaneousIRT(radon_transform, imaging_matrix, n_iter, num_views, start_ang, del_ang, stop_ang, lambda);
 
 else
 
