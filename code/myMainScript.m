@@ -10,7 +10,7 @@ col_scale =  [0:1/(my_num_of_colors-1):1]';
 my_color_scale = [col_scale,col_scale,col_scale];
 
 % Set to_save to 1, if you want to save the generated pictures %
-to_save  = 0;
+to_save  = 1;
 is_color = 1;
 
 tic;
@@ -66,7 +66,14 @@ else
 end
 
 disp(size(attenuation));
-savefig(my_color_scale,attenuation,"Reconstructed Image","ReconstructedImage.png",1,to_save);
+savefig(my_color_scale,attenuation,"Reconstructed Image","ReconstructedImageAdditive.png",1,to_save);
+
+attenuation = multiplicativeART(radon_transform, imaging_matrix, n_iter, num_views, start_ang, del_ang, stop_ang, lambda);
+savefig(my_color_scale,attenuation,"Reconstructed Image","ReconstructedImageMultiplicative.png",1,to_save);
+
+attenuation = simultaneousIRT(radon_transform, imaging_matrix, n_iter, num_views, start_ang, del_ang, stop_ang, lambda);
+savefig(my_color_scale,attenuation,"Reconstructed Image","ReconstructedImageSimultaneous.png",1,to_save);
+
 
 toc;
 
