@@ -1,9 +1,19 @@
-function attenuation = additiveART(radon_transform, imaging_matrix, n_iter, num_views, start_ang, del_ang, stop_ang, lambda)
+function [attenuation, rrmse_list] = additiveART(radon_transform, imaging_matrix, n_iter, num_views, start_ang, del_ang, stop_ang, lambda, original_image)
 	% Constructs the Attenuation Matrix %
 	fprintf('Additive Algorithm \n');
 	
 	[h,w] = size(squeeze(imaging_matrix(1,:,:)));
 	attenuation = zeros([h,w]);
+
+	rrmse_list = zeros(size([n_iter,1]));
+
+	% % gif part
+	% imagesc(attenuation)
+	% fCount = 60;
+	% detlaT = 0.1;
+	% f = getframe(gcf);
+	% [im,map] = rgb2ind(f.cdata,256,'nodither');
+	% k = 1;
 
 	for i=1:n_iter
 		fprintf('Iteration %d \n', i);
@@ -26,8 +36,17 @@ function attenuation = additiveART(radon_transform, imaging_matrix, n_iter, num_
 			attenuation(attenuation<0) = 0;
 			attenuation(attenuation>1) = 1;
 
-			% imagesc(attenuation);
+			% % GIF Part
+			% if (mod(curr_view, 30) == 0)
+			% 	imagesc(attenuation);
+  	% 			f = getframe(gcf);
+  	% 			im(:,:,1,k) = rgb2ind(f.cdata,map,'nodither');
+  	% 			k = k + 1;
+  	% 		end
+
 			% waitforbuttonpress;			
 		end
+		rrmse_list(i) = RRMSE(original_image, attenuation);
 	end
+	% imwrite(im,map,'Animation-Additive.gif','DelayTime',detlaT,'LoopCount',inf)
 end

@@ -1,9 +1,19 @@
-function attenuation = multiplicativeART(radon_transform, imaging_matrix, n_iter, num_views, start_ang, del_ang, stop_ang, lambda)
+function [attenuation, rrmse_list] = multiplicativeART(radon_transform, imaging_matrix, n_iter, num_views, start_ang, del_ang, stop_ang, lambda, original_image)
 	% Constructs the Attenuation Matrix %
 	fprintf('Multiplicative Algorithm \n');
 	
 	[h,w] = size(squeeze(imaging_matrix(1,:,:)));
 	attenuation = ones([h,w]);
+
+	rrmse_list = zeros(size([n_iter,1]));
+
+	% % GIF part
+	% imagesc(attenuation)
+	% fCount = 60;
+	% detlaT = 0.1;
+	% f = getframe(gcf);
+	% [im,map] = rgb2ind(f.cdata,256,'nodither');
+	% k = 1;
 
 	for i=1:n_iter
 		fprintf('Iteration %d \n', i);
@@ -20,14 +30,23 @@ function attenuation = multiplicativeART(radon_transform, imaging_matrix, n_iter
 			% size(update_term)
 			update_vector = repmat(update_term,[h,1]).*curr_matrix;
 			% size(update_vector)
-			attenuation = lambda*(attenuation.*imrotate(update_vector,-curr_ang,'bilinear','crop'));
+			attenuation = attenuation.*(imrotate(update_vector,-curr_ang,'bilinear','crop').^lambda);
 
 			% Non negativity constraint as projection onto convex set
 			attenuation(attenuation<0) = 0;
 			attenuation(attenuation>1) = 1;
 
-			% imagesc(attenuation);
-			% waitforbuttonpress;
+			% % GIF Part
+			% if (mod(curr_view, 30) == 0)
+			% 	imagesc(attenuation);
+  	% 			f = getframe(gcf);
+  	% 			im(:,:,1,k) = rgb2ind(f.cdata,map,'nodither');
+  	% 			k = k + 1;
+  	% 		end
+% 			imagesc(attenuation);
+% 			waitforbuttonpress;
 		end
+		rrmse_list(i) = RRMSE(original_image, attenuation);
 	end
+	% imwrite(im,map,'Animation-Multiplicative.gif','DelayTime',detlaT,'LoopCount',inf)
 end
