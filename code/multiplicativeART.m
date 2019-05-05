@@ -1,9 +1,11 @@
-function attenuation = multiplicativeART(radon_transform, imaging_matrix, n_iter, num_views, start_ang, del_ang, stop_ang, lambda)
+function [attenuation, rrmse_list] = multiplicativeART(radon_transform, imaging_matrix, n_iter, num_views, start_ang, del_ang, stop_ang, lambda, original_image)
 	% Constructs the Attenuation Matrix %
 	fprintf('Multiplicative Algorithm \n');
 	
 	[h,w] = size(squeeze(imaging_matrix(1,:,:)));
 	attenuation = ones([h,w]);
+
+	rrmse_list = zeros(size([n_iter,1]));
 
 	for i=1:n_iter
 		fprintf('Iteration %d \n', i);
@@ -20,14 +22,15 @@ function attenuation = multiplicativeART(radon_transform, imaging_matrix, n_iter
 			% size(update_term)
 			update_vector = repmat(update_term,[h,1]).*curr_matrix;
 			% size(update_vector)
-			attenuation = lambda*(attenuation.*imrotate(update_vector,-curr_ang,'bilinear','crop'));
+			attenuation = attenuation.*(imrotate(update_vector,-curr_ang,'bilinear','crop').^lambda);
 
 			% Non negativity constraint as projection onto convex set
 			attenuation(attenuation<0) = 0;
 			attenuation(attenuation>1) = 1;
 
-			% imagesc(attenuation);
-			% waitforbuttonpress;
+% 			imagesc(attenuation);
+% 			waitforbuttonpress;
 		end
+		rrmse_list(i) = RRMSE(original_image, attenuation);
 	end
 end

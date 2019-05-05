@@ -1,9 +1,11 @@
-function attenuation = simultaneousIRT(radon_transform, imaging_matrix, n_iter, num_views, start_ang, del_ang, stop_ang, lambda)
+function [attenuation, rrmse_list] = simultaneousIRT(radon_transform, imaging_matrix, n_iter, num_views, start_ang, del_ang, stop_ang, lambda, original_image)
 	% Constructs the Attenuation Matrix %
 	fprintf('SIRT Algorithm \n');
 	
 	[h,w] = size(squeeze(imaging_matrix(1,:,:)));
 	attenuation = zeros([h,w]);
+
+	rrmse_list = zeros(size([n_iter,1]));
 
 	for i=1:n_iter
 		fprintf('Iteration %d \n', i);
@@ -25,13 +27,15 @@ function attenuation = simultaneousIRT(radon_transform, imaging_matrix, n_iter, 
 			cumulative_update_vector = cumulative_update_vector + imrotate(update_vector,-curr_ang,'bilinear','crop');
 
 		end
-		
+			
 		attenuation = attenuation + lambda*cumulative_update_vector/num_views;
 
 		% Non negativity constraint as projection onto convex set
 		attenuation(attenuation<0) = 0;
 		attenuation(attenuation>1) = 1;
+
+		rrmse_list(i) = RRMSE(original_image, attenuation);
 		% imagesc(attenuation);
-		% waitforbuttonpress;			
+		% waitforbuttonpress;
 	end
 end
