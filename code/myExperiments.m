@@ -10,16 +10,22 @@ col_scale =  [0:1/(my_num_of_colors-1):1]';
 my_color_scale = [col_scale,col_scale,col_scale];
 
 % Set to_save to 1, if you want to save the generated pictures %
-to_save  = 1;
+to_save  = 0;
 is_color = 1;
 
 tic;
 %% Load Image to be reconstructed
 % Loading the denoised image
-original_image = phantom(128);
+% original_image = phantom(128);
 % original_image = im2double(imread('../data/brain_mri.jpg'));
-
-% savefig(my_color_scale,original_image,"Original Image","Original.png",1,to_save);
+original_image = im2double(imread('../data/CT_2.tif'));
+min_val = min(min(original_image));
+max_val = max(max(original_image));
+range = max_val - min_val;
+original_image = (original_image - min_val)/(range);
+savefig(my_color_scale,original_image,"Original Image","Original.png",1,to_save);
+file_name = 'Original_CT_1.png';
+imwrite(original_image, file_name);
 [h,w] = size(original_image);
 
 %% Setting parameters of Radon Transform
@@ -33,33 +39,6 @@ del_t     = h/num_bins;
 lambda    = 1;
 n_iter    = 100;
 
-radon_transform = constructRadonTransform(original_image, num_bins, num_views, start_ang, stop_ang, del_ang, del_t);
-%% Construct matrix A
-imaging_matrix = constructImagingMatrix(original_image, num_bins, num_views, start_ang, stop_ang, del_ang, del_t);
-
-fig = figure;
-[attenuation, rrmse_list] = additiveART(radon_transform, imaging_matrix, n_iter, num_views, start_ang, del_ang, stop_ang, lambda, original_image);
-% savefig(my_color_scale,attenuation,"Reconstructed Image AART","ReconstructedImageAdditive.png",1,to_save);
-
-plot(rrmse_list);
-hold on
-
-[attenuation, rrmse_list] = multiplicativeART(radon_transform, imaging_matrix, n_iter, num_views, start_ang, del_ang, stop_ang, lambda, original_image);
-% savefig(my_color_scale,attenuation,"Reconstructed Image MRT","ReconstructedImageMultiplicative.png",1,to_save);
-plot(rrmse_list);
-hold on
-
-% n_iter    = 200;
-% [attenuation, rrmse_list] = simultaneousIRT(radon_transform, imaging_matrix, n_iter, num_views, start_ang, del_ang, stop_ang, lambda, original_image);
-% savefig(my_color_scale,attenuation,"Reconstructed Image SIRT","ReconstructedImageSimultaneous.png",1,to_save);
-
-
-xlabel('Iteration number');
-ylabel('RRMSE values');
-title("RRMSE vs Iteration for different variants of ART");
-legend('Add','Mult')
-saveas(fig,"RRMSE.png");
-hold off;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -100,38 +79,38 @@ hold off;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% %% RRMSE of different algorithms on phantom image without noise
-% %% Construct 'b' the radon transform
-% radon_transform = constructRadonTransform(original_image, num_bins, num_views, start_ang, stop_ang, del_ang, del_t);
-% % savefig(my_color_scale,radon_transform,"Radon Transform","RadonTransform.png",1,to_save);
+%% RRMSE of different algorithms on phantom image without noise
+%% Construct 'b' the radon transform
+radon_transform = constructRadonTransform(original_image, num_bins, num_views, start_ang, stop_ang, del_ang, del_t);
+savefig(my_color_scale,radon_transform,"Radon Transform","RadonTransform.png",1,to_save);
 
-% %% Construct matrix A
-% imaging_matrix = constructImagingMatrix(original_image, num_bins, num_views, start_ang, stop_ang, del_ang, del_t);
+%% Construct matrix A
+imaging_matrix = constructImagingMatrix(original_image, num_bins, num_views, start_ang, stop_ang, del_ang, del_t);
 
-% fig = figure;
+fig = figure;
 
-% [attenuation, rrmse_list] = additiveART(radon_transform, imaging_matrix, n_iter, num_views, start_ang, del_ang, stop_ang, lambda, original_image);
-% file_name = 'ReconstructedImageAdditive.png';
-% imwrite(attenuation, file_name);
-% plot(rrmse_list);
-% hold on
-% [attenuation, rrmse_list] = multiplicativeART(radon_transform, imaging_matrix, n_iter, num_views, start_ang, del_ang, stop_ang, lambda, original_image);
-% file_name = 'ReconstructedImageMultiplicative.png';
-% imwrite(attenuation, file_name);
-% plot(rrmse_list);
-% hold on
-% [attenuation, rrmse_list] = simultaneousIRT(radon_transform, imaging_matrix, n_iter, num_views, start_ang, del_ang, stop_ang, lambda, original_image);
-% file_name = 'ReconstructedImageSimultaneous.png';
-% imwrite(attenuation, file_name);
-% plot(rrmse_list);
-% hold on
+[attenuation, rrmse_list] = additiveART(radon_transform, imaging_matrix, n_iter, num_views, start_ang, del_ang, stop_ang, lambda, original_image);
+file_name = 'ReconstructedImageAdditive.png';
+imwrite(attenuation, file_name);
+plot(rrmse_list);
+hold on
+[attenuation, rrmse_list] = multiplicativeART(radon_transform, imaging_matrix, 200, num_views, start_ang, del_ang, stop_ang, lambda, original_image);
+file_name = 'ReconstructedImageMultiplicative.png';
+imwrite(attenuation, file_name);
+plot(rrmse_list);
+hold on
+[attenuation, rrmse_list] = simultaneousIRT(radon_transform, imaging_matrix, n_iter, num_views, start_ang, del_ang, stop_ang, lambda, original_image);
+file_name = 'ReconstructedImageSimultaneous.png';
+imwrite(attenuation, file_name);
+plot(rrmse_list);
+hold on
 
-% xlabel('Iteration number');
-% ylabel('RRMSE values');
-% title("RRMSE vs Iteration for different variants of ART");
-% legend('Add','Mult','Simul')
-% saveas(fig,"RRMSE.png");
-% hold off;
+xlabel('Iteration number');
+ylabel('RRMSE values');
+title("RRMSE vs Iteration for different variants of ART");
+legend('Add','Mult','Simul')
+saveas(fig,"RRMSE.png");
+hold off;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -305,9 +284,7 @@ hold off;
 % plot(rrmse_list);
 % xlabel('Iteration number');
 % ylabel('RRMSE values');
-% title("RRMSE vs Iteration for SIRT");;
-
-
+% title("RRMSE vs Iteration for SIRT");
 % % saveas(fig,"Gauss_Noisy_RRMSE_SIRT.png");
 % saveas(fig,"Poiss_Noisy_RRMSE_SIRT.png");
 

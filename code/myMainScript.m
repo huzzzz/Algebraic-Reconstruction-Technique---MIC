@@ -19,6 +19,11 @@ tic;
 original_image = phantom(128);
 % original_image = im2double(imread('../data/brain_mri.jpg'));
 
+min_val = min(min(original_image));
+max_val = max(max(original_image));
+range = max_val - min_val;
+original_image = (original_image - min_val)/(range);
+
 savefig(my_color_scale,original_image,"Original Image","Original.png",1,to_save);
 [h,w] = size(original_image);
 
@@ -32,11 +37,10 @@ start_ang = 0;
 stop_ang  = 180;
 del_ang   = (stop_ang - start_ang)/num_views;
 del_t     = h/num_bins;
-
-lambda    = 1;
-n_iter    = 100;
-variant   = 'Additive';
-% variant   = 'Multiplicative';
+lambda    = 0.5;
+n_iter    = 50;
+% variant   = 'Additive';
+variant   = 'Multiplicative';
 % variant   = 'SIRT';
 
 %% Construct 'b' the radon transform
@@ -86,6 +90,7 @@ function savefig(my_color_scale,modified_pic,title_name,file_name,is_color,to_sa
 	
 	imagesc(modified_pic), title(title_name), colorbar, daspect([1 1 1]), axis tight;
 	impixelinfo();
+	
 	if to_save == 1
 		saveas(fig,file_name);
 		% close(fig);
